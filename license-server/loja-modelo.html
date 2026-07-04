@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OTServ Editor — Licença</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", system-ui, sans-serif; background: radial-gradient(1000px 500px at 70% -10%, #1b2236, #0f1118 60%); color: #e9edf6; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .card { width: 520px; max-width: 100%; background: #141826; border: 1px solid #2a3145; border-radius: 18px; padding: 34px; box-shadow: 0 30px 80px #000a; }
+    h1 { margin: 0 0 6px; font-size: 26px; }
+    .sub { color: #93a0b8; margin-bottom: 22px; }
+    .price { font-size: 40px; font-weight: 800; }
+    .price small { font-size: 16px; color: #93a0b8; font-weight: 400; }
+    ul { color: #cdd6ec; font-size: 13.5px; line-height: 1.75; padding-left: 18px; margin: 14px 0 18px; }
+    .tag { display: inline-block; background: #1c2740; border: 1px solid #2a3145; color: #9fc0ff; font-size: 11px; padding: 2px 8px; border-radius: 20px; margin: 2px 3px 2px 0; }
+    .sec { font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: #6b768e; margin: 16px 0 6px; font-weight: 700; }
+    .vers { font-size: 12px; color: #93a0b8; background: #11131c; border: 1px solid #2a3145; border-radius: 8px; padding: 8px 10px; margin: 6px 0 4px; }
+    .buy { display: block; text-align: center; text-decoration: none; background: linear-gradient(#5b8cff, #3f6fe0); color: #fff; padding: 15px; border-radius: 12px; font-size: 18px; font-weight: 700; }
+    .buy:hover { filter: brightness(1.08); }
+    .steps { margin-top: 22px; font-size: 13px; color: #93a0b8; border-top: 1px solid #2a3145; padding-top: 16px; }
+    .steps b { color: #e9edf6; }
+    code { background: #11131c; padding: 2px 6px; border-radius: 5px; color: #5cf08a; }
+    details.terms { margin-top: 18px; border: 1px solid #3a2a3a; background: #170f15; border-radius: 10px; padding: 0 12px; }
+    details.terms summary { cursor: pointer; padding: 12px 0; font-weight: 700; color: #ff9bb0; font-size: 13px; }
+    details.terms ol { color: #cdd6ec; font-size: 12px; line-height: 1.7; padding-left: 18px; margin: 4px 0 14px; }
+    details.terms b { color: #ffd0da; }
+    .warn { background: #2a1414; border: 1px solid #6a2030; color: #ff9bb0; font-size: 12px; border-radius: 8px; padding: 8px 10px; margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>⚔️ OTServ Editor</h1>
+    <div class="sub">A suíte completa pra criar e editar seu OTServer (TFS) e cliente (OTClient) — tudo num programa só.</div>
+    <div class="price">Doação R$ 30 <small>/ mês · acesso ao programa</small></div>
+    <div class="sub" style="font-size:12px;margin:6px 0 0">Esta é uma <b>doação de apoio</b> ao desenvolvimento, não a compra de um produto. A doação <b>não é reembolsável</b>. Ao doar você concorda com os Termos abaixo.</div>
+
+    <div class="sec">Versões de cliente suportadas</div>
+    <div class="vers">7.10 · 7.30 · 7.40 · 7.55 · 7.60 · 7.72 · 7.80 · 7.92 · 8.00 · 8.10 · 8.20 · 8.31 · 8.40 · 8.54 · 8.60 · 8.70 · 9.00 · 9.10 · 9.44 · 9.54 · 9.60 · 9.80 · 9.86 · 10.10 · 10.21 · 10.41 · 10.57 · 10.77 · 10.98 · 11.x · 12.x · <b>15.x</b> (appearances + sprite sheets)</div>
+
+    <div class="sec">Ferramentas inclusas</div>
+    <ul>
+      <li><b>Editor de Mapa (.otbm)</b> estilo Remere's — palettes (Terrain/Doodad/Wall/Door/Carpet/Creature/House/Waypoint/RAW), auto-border, brushes, casas, spawns, towns, zonas, minimap, render GPU</li>
+      <li><b>Object Builder (.dat/.spr)</b> — sprites, animação, propriedades, frame groups, Sprites/Frame Optimizer, Slicer, Object Viewer, export .obd/.png</li>
+      <li><b>Assets 12+/15.x</b> — abre appearances + sprite sheets dos clientes novos</li>
+      <li><b>Editor de Monstros</b> — XML, loot, balanceamento, escalar dano/exp, simular loot</li>
+      <li><b>Editor de NPCs</b> — loja (buy/sell) e diálogos</li>
+      <li><b>Vocações</b> · <b>Spawns</b> · <b>Economia</b> (auditoria)</li>
+      <li><b>Spell Editor</b> com preview animado + <b>Script Studio</b> (actions/movements/talkactions/creaturescripts/globalevents)</li>
+      <li><b>Assistente de IA</b> — gera monstros, spells e scripts prontos pro TFS</li>
+      <li><b>Gerenciador de Arquivos</b> + editor de código · <b>config.lua</b> · <b>Quests</b> · <b>Outfits/Mounts</b></li>
+      <li><b>Validador</b> + Health Check + Backup + Dashboard do servidor</li>
+      <li>Português e Inglês · <b>Atualizações automáticas</b> · 1 máquina por licença</li>
+    </ul>
+
+    <!-- Link de pagamento do Stripe (doação R$30/mes) -->
+    <a class="buy" href="https://buy.stripe.com/SEU_LINK_DE_PAGAMENTO" target="_blank" rel="noopener">
+      Doar — R$30/mês (PIX / Cartão)
+    </a>
+    <div style="font-size:11px;color:#6b768e;text-align:center;margin-top:8px">Ao doar você declara que leu e aceita os <b>Termos de Doação e Uso</b> abaixo.</div>
+
+    <div class="steps">
+      <b>Como ativar:</b><br>
+      1. Pague com seu email no botão acima.<br>
+      2. Abra o app → tela de <b>Ativação</b>.<br>
+      3. Digite o <b>mesmo email</b> da compra → <b>Ativar</b>.<br>
+      <br>
+      Renova sozinho todo mês. Suporte no Discord: <code>_100porcento</code>
+    </div>
+
+    <div class="warn">⚠ Tentar <b>injetar</b>, modificar, descompilar ou debugar o programa = <b>ban de HWID permanente</b>, sem reembolso.</div>
+
+    <details class="terms">
+      <summary>📄 Termos de Doação e Uso (leia antes de doar)</summary>
+      <ol>
+        <li><b>Natureza da contribuição.</b> O valor é uma <b>doação voluntária</b> de apoio ao desenvolvimento e manutenção do OTServ Editor, que concede acesso de uso ao programa enquanto a doação mensal estiver ativa. <b>Não é a compra de um produto</b> nem garante qualquer resultado específico.</li>
+        <li><b>Sem reembolso.</b> Por se tratar de uma <b>doação</b>, os valores <b>não são reembolsáveis</b> em nenhuma hipótese, total ou parcialmente, incluindo períodos não utilizados.</li>
+        <li><b>Reembolso/chargeback = ban permanente.</b> Qualquer <b>tentativa de reembolso, estorno, chargeback ou disputa</b> junto ao meio de pagamento resultará em <b>banimento permanente do HWID</b> e encerramento imediato do acesso, sem aviso.</li>
+        <li><b>Proibição de engenharia reversa e injeção.</b> É <b>proibido</b> injetar código (ex.: Frida, DLLs), modificar, descompilar, desmontar, debugar, abrir em ferramentas de análise (ex.: Ghidra, IDA, x64dbg) ou burlar a verificação de licença. Qualquer tentativa detectada resultará em <b>ban de HWID permanente e imediato</b>, sem reembolso.</li>
+        <li><b>Licença de uso.</b> 1 (uma) máquina por doação ativa (vínculo por HWID). É proibido revender, compartilhar ou redistribuir o programa, a chave ou o acesso.</li>
+        <li><b>Atualizações e disponibilidade.</b> O programa é fornecido "como está". Atualizações e disponibilidade do serviço podem mudar sem aviso prévio.</li>
+        <li><b>Cancelamento.</b> Você pode cancelar a doação mensal quando quiser; o acesso permanece até o fim do período já pago e não é reembolsado.</li>
+        <li><b>Aceite.</b> Ao realizar a doação você declara ter lido e concordado integralmente com estes Termos.</li>
+      </ol>
+    </details>
+  </div>
+</body>
+</html>

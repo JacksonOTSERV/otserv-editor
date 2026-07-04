@@ -1,0 +1,5 @@
+Suporte completo a clientes 15.x / Canary: sprites (assets), items.xml e materiais.
+Editor de mapa muito mais rapido e leve: menos RAM e sem travar no zoom out.
+Correcoes no editor de sprites (.spr) e na visualizacao de andares.
+Emojis e icones da interface corrigidos.
+Varias melhorias de estabilidade.

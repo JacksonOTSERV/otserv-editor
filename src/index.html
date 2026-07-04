@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>OTServ Editor (Tauri)</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: "Segoe UI", sans-serif; background: radial-gradient(900px 400px at 70% -10%, #1b2236, #0f1118 60%); color: #e9edf6; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    header { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid #2a3145; background: #141826; }
+    header h1 { font-size: 17px; margin: 0; }
+    .badge { background: #1d4a2a; color: #5cf08a; padding: 2px 8px; border-radius: 8px; font-size: 12px; }
+    button { background: linear-gradient(#2c3346, #232a3a); color: #e9edf6; border: 1px solid #353d54; border-radius: 8px; padding: 6px 12px; cursor: pointer; font-size: 12px; }
+    button:hover { border-color: #5b8cff; }
+    button.on { background: linear-gradient(#5b8cff, #3f6fe0); border-color: #6f9bff; }
+    .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .tabs { display: flex; gap: 4px; padding: 8px 16px; border-bottom: 1px solid #2a3145; }
+    .tab { padding: 5px 14px; border-radius: 7px; }
+    .tab.on { background: #1c2740; border: 1px solid #5b8cff; }
+    #toolbar { display: flex; gap: 8px; align-items: center; padding: 8px 16px; border-bottom: 1px solid #2a3145; }
+    #toolbar input { background: #11131c; color: #e9edf6; border: 1px solid #2a3145; border-radius: 6px; padding: 5px 8px; }
+    #grid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, 52px); gap: 6px; padding: 14px; align-content: start; }
+    .cell { width: 52px; height: 68px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #14161e; border: 1px solid #232938; border-radius: 6px; cursor: pointer; }
+    .cell:hover { border-color: #5b8cff; }
+    .cell canvas { width: 32px; height: 32px; image-rendering: pixelated; }
+    .cell span { font-size: 9px; color: #8a93a6; margin-top: 2px; }
+    .sub { color: #93a0b8; font-size: 12px; }
+    #status { padding: 6px 16px; border-top: 1px solid #2a3145; font-size: 12px; color: #93a0b8; background: #141826; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>⚔️ OTServ Editor <span class="badge">Tauri + Rust</span></h1>
+    <a href="index.html" class="tab on" style="text-decoration:none;color:inherit">🧩 Object</a>
+    <a href="map.html" class="tab" style="text-decoration:none;color:inherit">🗺 Mapa</a>
+    <div class="row" style="margin-left:auto">
+      <button id="btnDat">📂 .dat</button>
+      <button id="btnSpr">🎨 .spr</button>
+      <button id="optExt" class="on" title="sprites extended (u32) — OTCv8 costuma ser">extended</button>
+      <button id="optTr" class="on" title="transparência (alpha) — OTCv8 8.60 usa">transparência</button>
+    </div>
+  </header>
+  <div class="tabs" id="tabs"></div>
+  <div id="toolbar" class="row">
+    <input id="filter" placeholder="filtrar por id…" style="width:160px" />
+    <span class="sub" id="catInfo"></span>
+    <span class="sub" style="margin-left:auto" id="loadInfo"></span>
+  </div>
+  <div id="grid"></div>
+  <div id="status">pronto. Abra o <b>.dat</b> e o <b>.spr</b> do cliente (8.60 / OTCv8).</div>
+
+  <script type="module">
+    import { TFS, TSPR, TDLG } from './bridge.js';
+    import { loadLibs, req } from './cjs.js';
+    import { composeThing, warmSprites } from './sprites.js';
+
+    const $ = (id) => document.getElementById(id);
+    const status = (m) => $('status').innerHTML = m;
+    let Dat, dat = null, sprOpen = false, cat = 'items', datBytes = null, datPath = null, sprPath = null;
+    const opts = () => ({ ext: $('optExt').classList.contains('on'), tr: $('optTr').classList.contains('on') });
+
+    (async () => { await loadLibs(['bytereader.js', 'versions.js', 'dat.js']); Dat = req('./dat'); status('parsers carregados (Buffer shim + CommonJS loader). Abra .dat e .spr.'); })();
+
+    $('optExt').onclick = () => { $('optExt').classList.toggle('on'); if (datBytes) reloadDat(); };
+    $('optTr').onclick = () => { $('optTr').classList.toggle('on'); if (sprPath) reopenSpr(); };
+
+    async function reloadDat() {
+      const o = opts(); const t0 = performance.now();
+      dat = new Dat(datBytes, { extended: o.ext, frameDurations: true, frameGroups: true, version: 860 });
+      const ms = (performance.now() - t0).toFixed(0);
+      $('loadInfo').textContent = `dat: ${dat.itemCount} items · ${dat.creatureCount} outfits · ${dat.effectCount} fx · ${dat.missileCount} mis (${ms}ms)`;
+      buildTabs(); render();
+    }
+    async function reopenSpr() { const o = opts(); const n = await TSPR.open(sprPath, { extended: o.ext, transparency: o.tr }); sprOpen = true; status(`.spr aberto: ${n} sprites (decode nativo Rust)`); render(); }
+
+    $('btnDat').onclick = async () => {
+      const p = await TDLG.openFile([{ name: 'Tibia.dat', extensions: ['dat'] }]); if (!p) return; datPath = p;
+      status('lendo .dat…'); datBytes = await TFS.readFile(p); await reloadDat(); status('.dat carregado: ' + p);
+    };
+    $('btnSpr').onclick = async () => { const p = await TDLG.openFile([{ name: 'Tibia.spr', extensions: ['spr'] }]); if (!p) return; sprPath = p; await reopenSpr(); };
+
+    const CATS = [['items', '🧩 Items'], ['outfits', '👕 Outfits'], ['effects', '✨ Effects'], ['missiles', '🏹 Missiles']];
+    function buildTabs() { const tb = $('tabs'); tb.innerHTML = ''; for (const [k, lbl] of CATS) { const b = document.createElement('div'); b.className = 'tab' + (k === cat ? ' on' : ''); b.textContent = lbl; b.onclick = () => { cat = k; buildTabs(); render(); }; tb.appendChild(b); } }
+    $('filter').oninput = () => { clearTimeout(window._ft); window._ft = setTimeout(render, 200); };
+
+    async function render() {
+      if (!dat) return; const map = dat[cat]; const q = $('filter').value.trim();
+      const ids = [...map.keys()].filter((id) => !q || String(id).includes(q)).slice(0, 600);
+      $('catInfo').textContent = `${map.size} ${cat} · mostrando ${ids.length}`;
+      const grid = $('grid'); grid.innerHTML = '';
+      const px = (cat === 'outfits' && map.get(ids[0]) && map.get(ids[0]).px >= 4) ? 2 : 0;
+      for (const id of ids) {
+        const t = map.get(id); const cell = document.createElement('div'); cell.className = 'cell'; cell.title = id;
+        const cv = document.createElement('canvas'); cv.width = cv.height = 32; cell.appendChild(cv);
+        const sp = document.createElement('span'); sp.textContent = id; cell.appendChild(sp); grid.appendChild(cell);
+        if (sprOpen) composeThing(t, px, 0).then((c) => { if (c) cv.getContext('2d').drawImage(c, 0, 0, 32, 32); });
+      }
+      status(`${cat}: ${ids.length} renderizados` + (sprOpen ? ' (sprites nativos)' : ' — abra o .spr p/ ver os sprites'));
+    }
+  </script>
+</body>
+</html>

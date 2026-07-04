@@ -1,0 +1,12 @@
+{
+  "name": "otserv-editor-license-server",
+  "version": "1.0.0",
+  "description": "Servidor de licencas do OTServ Editor (verify + Mercado Pago webhook)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}

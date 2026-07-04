@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>OTServ Editor</title>
+  <link rel="stylesheet" href="node_modules/codemirror/lib/codemirror.css" />
+  <link rel="stylesheet" href="node_modules/codemirror/theme/material-darker.css" />
+  <link rel="stylesheet" href="node_modules/codemirror/addon/dialog/dialog.css" />
+  <link rel="stylesheet" href="node_modules/codemirror/addon/merge/merge.css" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="toolbar">
+    <span class="tbBrand">⚔️ OTServ Editor</span>
+    <span class="tbsep"></span>
+    <button id="btnServer" class="accent">📂 Servidor</button>
+    <button id="btnEditFile">📝 Editar arquivo</button>
+    <button id="btnValidate">🔎 Validar</button>
+    <button id="btnHealth">🩺 Health Check</button>
+    <button id="btnBackup">🛡 Backup</button>
+    <button id="btnConfig">⚙ config.lua</button>
+    <button id="btnQuests">📜 Quests</button>
+    <button id="btnOutfits">👕 Outfits/Mounts</button>
+    <span class="tbsep"></span>
+    <span class="tbLabel">cliente</span>
+    <button id="btnDat">🗂 .dat</button>
+    <button id="btnSpr">🖼 .spr</button>
+    <button id="btnOtb">🧩 items.otb</button>
+    <details id="fmtMenu" class="tbDetails">
+      <summary>⚙ Formato</summary>
+      <div class="fmtPop">
+        <label title="indice de sprite u32"><input type="checkbox" id="optExtended" checked> Extended</label>
+        <label title="pixel RGBA (canal alpha)"><input type="checkbox" id="optTransparency" checked> Transparency</label>
+        <label title="grupos de frame (creatures)"><input type="checkbox" id="optFrameGroups" checked> Frame Groups</label>
+        <label title="duracoes de frame (improved anim)"><input type="checkbox" id="optFrameDurations" checked> Frame Durations</label>
+      </div>
+    </details>
+    <span class="tbSpacer"></span>
+    <button id="btnLang" title="mudar idioma / change language" style="font-size:18px;padding:4px 10px">🇧🇷</button>
+    <button id="btnTheme" title="tema claro/escuro">🌙</button>
+    <button id="btnShortcuts" title="atalhos do teclado">⌨</button>
+    <button id="btnDashboard" title="resumo/estatísticas do servidor">📊 Dashboard</button>
+    <label class="tbChk" title="salva automaticamente a cada 2 min se houver alterações"><input id="chkAutoSave" type="checkbox"> auto-save</label>
+    <button id="btnLogs">⚠ Logs (0)</button>
+    <button id="btnSaveAll" class="primary">💾 Salvar tudo (0)</button>
+  </div>
+
+  <div id="main">
+    <!-- esquerda: busca + lista -->
+    <div id="sidebar">
+      <div id="modeBar">
+        <button id="modeMon" class="modeBtn active">🐲 Mobs</button>
+        <button id="modeNpc" class="modeBtn">🛒 NPCs</button>
+        <button id="modeVoc" class="modeBtn">📜 Vocs</button>
+        <button id="modeSpawn" class="modeBtn">🗺 Spawns</button>
+        <button id="modeFiles" class="modeBtn">📁 Arquivos</button>
+        <button id="modeObj" class="modeBtn">🧩 Object</button>
+        <button id="modeEcon" class="modeBtn">📊 Economia</button>
+        <button id="modeMap" class="modeBtn">🗺 Mapa</button>
+        <button id="modeAi" class="modeBtn">🤖 IA</button>
+        <button id="modeSpell" class="modeBtn">🪄 Spell</button>
+        <button id="modeScript" class="modeBtn">📜 Scripts</button>
+      </div>
+      <div id="searchRow">
+        <input id="search" type="text" placeholder="Buscar…" />
+        <button id="btnNew" title="Criar novo">＋ Novo</button>
+      </div>
+      <div id="list"></div>
+      <div id="fileTreeWrap" style="display:none">
+        <div class="treeBar"><button id="btnFilesRoot">📂 Pasta A</button><button id="btnFindInFiles" title="buscar texto em todos os arquivos">🔍</button><button id="btnFileNew" title="novo arquivo na raiz">➕</button><button id="btnRecent" title="arquivos recentes">🕘</button><button id="btnTemplate" title="criar arquivo de template (monster/spell/npc…)">📋</button><span id="filesRootLbl" class="alabel"></span></div>
+        <div id="fileTree" class="treeBox"></div>
+        <div class="treeBar treeBarB"><button id="btnFilesRootB">📂 Pasta B</button><span id="filesRootLblB" class="alabel"></span><button id="btnCloseB" class="miniX" title="fechar B" style="display:none">✕</button></div>
+        <div id="fileTreeB" class="treeBox"></div>
+      </div>
+    </div>
+
+    <!-- direita: detalhe -->
+    <div id="detail">
+      <div id="head">
+        <div id="spriteCol">
+          <canvas id="sprite" width="150" height="150"></canvas>
+          <button id="btnPickLook" title="Escolher outfit pelo sprite">🔍 outfit</button>
+        </div>
+        <div id="infoBox">
+          <h2 id="mName">—</h2>
+          <div id="mMeta" class="meta"></div>
+          <div class="row">
+            <label>Experience:</label>
+            <input id="mExp" type="number" />
+          </div>
+          <div id="mTier" class="tier"></div>
+          <div id="mSuggest" class="suggest"></div>
+        </div>
+      </div>
+
+      <div id="balance">
+        <div class="brow">
+          <label>⚔️ Voc ref:</label>
+          <select id="balVoc"></select>
+          <label>Level alvo:</label>
+          <input id="balLevel" type="number" value="100" />
+          <span id="balHp" class="bhp"></span>
+        </div>
+        <div class="brow">
+          <span id="balExp" class="bsug"></span>
+          <button id="balExpApply" class="sugBtn">→ aplicar exp</button>
+          <span id="balDmg" class="bsug"></span>
+          <button id="balDmgApply" class="sugBtn">→ escalar dano</button>
+        </div>
+        <div id="attacksBox"></div>
+      </div>
+
+      <details id="attrPanel">
+        <summary>📋 Atributos completos do mob</summary>
+        <div id="attrFields"></div>
+      </details>
+
+      <div id="vocForm" style="display:none">
+        <div id="vocFields"></div>
+      </div>
+
+      <div id="filesPanel" style="display:none">
+        <div id="fileTabsBar">
+          <div id="fileTabs"></div>
+          <div class="tabsActions">
+            <button id="btnDiff" title="Comparar este arquivo com a outra pasta">🔀 Diff</button>
+            <button id="filesSave" class="primary" title="Salvar (Ctrl+S)">💾 Salvar</button>
+            <button id="btnCloseAllTabs" class="danger" title="Fechar todas">✕ todas</button>
+          </div>
+        </div>
+        <textarea id="filesArea" spellcheck="false"></textarea>
+      </div>
+
+      <div id="spawnPanel" style="display:none">
+        <div class="spawnBar">
+          <button id="btnOpenSpawn">📂 Abrir spawn.xml</button>
+          <input id="spawnFilter" placeholder="filtrar monstro…" />
+          <input id="spawnAddName" placeholder="nome do monstro…" style="width:150px" />
+          <input id="spawnAddTime" type="number" placeholder="respawn s" value="60" style="width:80px" />
+          <button id="spawnAddBtn">➕ Adicionar monster</button>
+          <button id="spawnBulkResp" title="define o respawn de TODOS os monstros">⏱ Respawn todos…</button>
+          <button id="spawnRandResp" title="randomiza o respawn ±X segundos">🎲 Randomizar respawn…</button>
+          <button id="spawnValidate" title="acha monstros do spawn que não existem em data/monster">✓ Validar mobs</button>
+          <span id="spawnInfo" class="alabel"></span>
+        </div>
+        <div id="spawnWrap">
+          <table id="spawnTable">
+            <thead><tr><th>Monstro</th><th>qtd spawns</th><th>respawn (segundos)</th><th>ações</th></tr></thead>
+            <tbody id="spawnBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="objPanel" style="display:none">
+        <div class="objBar">
+          <button class="objCat active" data-cat="items">Items</button>
+          <button class="objCat" data-cat="outfits">Outfits</button>
+          <button class="objCat" data-cat="effects">Effects</button>
+          <button class="objCat" data-cat="missiles">Missiles</button>
+          <button id="objNew" class="newBtn" title="criar novo (em branco)">➕ Novo</button>
+          <button id="objDup" title="duplicar o selecionado">⧉ Duplicar</button>
+          <button id="objImport" title="importar .obd (Object Builder) ou .png">📥 Importar</button>
+          <button id="objDataEditor" title="Data Editor — monta borda/piso/parede dos itens selecionados">🧱 Montar brush</button>
+          <button id="objUndo" title="desfazer (Ctrl+Z)">↶</button>
+          <button id="objRedo" title="refazer (Ctrl+Y)">↷</button>
+          <button id="objFindSpr" title="achar onde um sprite é usado">🔍 sprite</button>
+          <button id="objBatchSpr" title="trocar um sprite id por outro em TODOS os things">🔁 sprite</button>
+          <button id="objOtbAttr" title="editar atributos do items.otb (rotateTo)">🗃 otb attr</button>
+          <button id="objSearchAttr" title="buscar itens do items.xml por atributo">🔎 attr</button>
+          <button id="objCopy" title="copiar thing (Ctrl+C)">⧉ Copiar</button>
+          <button id="objPaste" title="colar como novo thing">📋 Colar</button>
+          <button id="objPasteProps" title="colar SÓ flags no selecionado">📋flags</button>
+          <button id="objPastePat" title="colar SÓ patterns/grupos no selecionado">📋pat</button>
+          <select id="objObdVer" title="versão de export .obd"><option value="3">OBD V3</option><option value="2">OBD V2</option><option value="1">OBD V1</option></select>
+          <select id="objFlagFilter" title="filtrar por flag"><option value="">— flag —</option></select>
+          <button id="objTools" title="ferramentas">🛠 Ferramentas ▾</button>
+          <button id="objSelAll" title="selecionar TODOS (todas as páginas, respeita filtro)">☑ Tudo</button>
+          <button id="objSelNone" title="deselecionar todos (multi + seleção)">❎ Deselecionar</button>
+          <button id="objExpObd" title="exportar selecionados como .obd (Ctrl/Shift+clique p/ vários)">📤 .obd</button>
+          <button id="objExpPng" title="exportar selecionados como .png">🖼 .png</button>
+          <span id="objMultiInfo" class="alabel" style="display:none"></span>
+          <input id="objFilter" placeholder="id ou nome…" />
+          <button id="objFirst" title="primeira página (id inicial)">⏮</button>
+          <button id="objPrev" title="página anterior">◀</button>
+          <input id="objPageInp" type="number" min="1" title="ir para a página" style="width:52px" />
+          <span id="objPage" class="alabel"></span>
+          <button id="objNext" title="próxima página">▶</button>
+          <button id="objLast" title="última página (último id do client)">⏭</button>
+          <span id="objInfo" class="alabel"></span>
+          <button id="objSaveSpr" class="primary" title="Salvar sprites alterados no .spr">💾 Salvar .spr (0)</button>
+          <button id="objSaveDat" class="primary" title="Salvar things alterados no .dat" style="display:none">💾 Salvar .dat</button>
+        </div>
+        <div id="objBody">
+          <div id="objGrid"></div>
+          <div id="objInspect"><div class="alabel" style="padding:12px">clique num thing →</div></div>
+        </div>
+      </div>
+
+      <div id="econPanel" style="display:none">
+        <div class="econSection">
+          <b>🔮 Cenário (what-if)</b> <button id="econScenario" class="miniBtn">Simular mudança de exp/gold</button>
+          <button id="econCurve" class="miniBtn">📈 Curva de progressão</button>
+          <span class="alabel">testa o impacto antes de aplicar</span>
+        </div>
+        <div class="econSection">
+          <b>⚙️ Level por tier</b>
+          <div class="tierLevels">
+            <label>Trash<input id="lvTrash" type="number" value="10" /></label>
+            <label>Comum<input id="lvComum" type="number" value="50" /></label>
+            <label>Forte<input id="lvForte" type="number" value="120" /></label>
+            <label>Elite<input id="lvElite" type="number" value="250" /></label>
+            <label>Boss<input id="lvBoss" type="number" value="400" /></label>
+          </div>
+        </div>
+        <div class="econSection">
+          <b>⚡ Aplicar em massa</b> <span class="alabel">(usa o level do tier acima)</span>
+          <div class="batchBar">
+            <button id="batGold">Gold → todos</button>
+            <button id="batExp">Exp → todos</button>
+            <button id="batDmg">Dano → todos</button>
+            <label><input type="checkbox" id="batBackup" checked /> backup .bak</label>
+            <span id="batMsg" class="alabel"></span>
+          </div>
+        </div>
+        <div class="econSection">
+          <b>🧪 Simulador</b>
+          <div class="simInputs">
+            <label>Level<input id="simLevel" type="number" value="100" /></label>
+            <label>Mob<select id="simMob"></select></label>
+            <label>Tempo/kill(s)<input id="simKill" type="number" value="5" /></label>
+            <label>Poção cura<input id="simHeal" type="number" value="2000" /></label>
+            <label>Poção custo<input id="simCost" type="number" value="100" /></label>
+          </div>
+          <div id="simOut"></div>
+        </div>
+        <div class="econSection econGrow">
+          <div class="auditHead">
+            <b>📋 Auditoria — todos os mobs</b>
+            <input id="auditFilter" placeholder="filtrar nome/tier…" />
+            <span class="alabel">clique no cabeçalho p/ ordenar</span>
+          </div>
+          <div id="auditWrap">
+            <table id="auditTable">
+              <thead><tr>
+                <th data-col="name">Mob</th><th data-col="tier">tier</th><th data-col="exp">exp</th>
+                <th data-col="health">vida</th><th data-col="gold">gold/kill</th><th data-col="dmg">dano máx</th>
+                <th data-col="ratio">exp/vida</th><th data-col="flags">flags</th>
+              </tr></thead>
+              <tbody id="auditBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div id="tableWrap">
+        <table id="lootTable">
+          <thead id="tableHead">
+            <tr><th></th><th>Item (id ou name)</th><th>chance (/100000)</th><th>countmax</th><th></th></tr>
+          </thead>
+          <tbody id="lootBody"></tbody>
+        </table>
+      </div>
+
+      <div id="actions">
+        <button id="btnGold">＋ Gold sugerido</button>
+        <button id="btnAdd">＋ Item</button>
+        <button id="btnApplySug" style="display:none">✨ Aplicar todos sugeridos</button>
+        <button id="btnDelete" class="danger">🗑 Remover</button>
+        <button id="btnEditRaw">📝 XML cru</button>
+        <button id="btnMonCompare">📊 Comparar mobs</button>
+        <button id="btnLootSim">🎲 Simular loot</button>
+        <button id="btnSave" class="primary">💾 Salvar XML</button>
+      </div>
+    </div>
+
+      <div id="mapPanel" style="display:none">
+        <div id="mapMenu">
+          <details class="menu"><summary>Arquivo</summary><div class="menuPop">
+            <button id="btnOpenMap">📂 Abrir .otbm…</button>
+            <button id="mapMerge">＋🗺 Importar/Mesclar .otbm</button>
+            <button id="mapSaveAs">💾→ Salvar como…</button>
+            <button id="mapLoadBrush">📦 Carregar materiais RME…</button>
+          </div></details>
+          <details class="menu"><summary>Editar</summary><div class="menuPop">
+            <button id="mapUndo">↶ Desfazer (Ctrl+Z)</button>
+            <button id="mapRedo">↷ Refazer (Ctrl+Y)</button>
+            <hr>
+            <button id="mapCopy">⧉ Copiar (Ctrl+C)</button>
+            <button id="mapPaste">📋 Colar (Ctrl+V)</button>
+            <button id="mapDel">🗑 Deletar (Del)</button>
+            <hr>
+            <button id="mapFlipH">⇄ Espelhar horizontal</button>
+            <button id="mapFlipV">⇅ Espelhar vertical</button>
+            <button id="mapRot">↻ Rotacionar 90°</button>
+            <button id="mapRotCCW">↺ Rotacionar 90° (anti)</button>
+            <button id="mapRot180">⟲ Rotacionar 180°</button>
+            <small style="display:block;opacity:.6;padding:2px 6px">aplica em todos os andares selecionados</small>
+            <hr>
+            <button id="mapSearchAid">🔎 Buscar por Action ID…</button>
+            <button id="mapSearchUid">🔎 Buscar por Unique ID…</button>
+            <button id="mapSearchAttr">🔎 Buscar itens com attr (aid/uid/texto)</button>
+            <button id="mapSelectAll">⬚ Selecionar tudo (andar)</button>
+          </div></details>
+          <details class="menu"><summary>Ver</summary><div class="menuPop">
+            <label><input id="mapStack" type="checkbox" checked /> stack completo</label>
+            <label><input id="mapOverlays" type="checkbox" checked /> overlays (zonas/spawns/towns)</label>
+            <label><input id="mapShadow" type="checkbox" checked /> andar de baixo translúcido</label>
+            <label><input id="mapAnim" type="checkbox" /> animar itens</label>
+            <label><input id="mapMini" type="checkbox" checked /> minimap</label>
+            <label><input id="mapGrid" type="checkbox" /> grade (grid)</label>
+            <label title="aplica o deslocamento 3D (displacement) das paredes/montanhas"><input id="mapDisp" type="checkbox" checked /> efeito 3D (displacement)</label>
+            <label title="renderiza os sprites na GPU (WebGL2) — fluidez no zoom out, igual RME. desligue se ver glitch"><input id="mapGPU" type="checkbox" /> ⚡ render GPU (WebGL)</label>
+            <label><input id="mapShowHouses" type="checkbox" checked /> casas (house tiles)</label>
+            <label><input id="mapShowCreatures" type="checkbox" checked /> criaturas/spawns</label>
+            <label><input id="mapGhostUp" type="checkbox" /> ghost andar de cima</label>
+            <label><input id="mapAllFloors" type="checkbox" /> ver todos os andares acima</label>
+            <label title="empilha todos os andares ABAIXO do atual por baixo (estilo Tibia: andar 0 vê até o 7)"><input id="mapAllBelow" type="checkbox" /> ver todos os andares abaixo</label>
+            <label><input id="mapTooltips" type="checkbox" /> tooltips (nome do item ao passar o mouse)</label>
+            <label><input id="mapIngame" type="checkbox" /> modo in-game (sem grid/overlays)</label>
+            <label><input id="mapShowPathing" type="checkbox" /> pathing/blocking (vermelho = não anda)</label>
+            <label><input id="mapHighlightItems" type="checkbox" /> destacar itens (tiles com itens empilhados)</label>
+            <label><input id="mapShowSpecial" type="checkbox" /> tiles especiais (com aid/uid/texto)</label>
+          </div></details>
+          <details class="menu"><summary>Mapa</summary><div class="menuPop">
+            <button id="mapNew">🆕 Novo mapa vazio…</button>
+            <button id="mapResize">📐 Redimensionar mapa…</button>
+            <button id="mapClearHouses">🏚 Limpar casas inválidas</button>
+            <button id="mapRemoveCorpses">💀 Remover corpses…</button>
+            <hr>
+            <button id="mapGoto2">🎯 Ir para posição (x,y,z)…</button>
+            <button id="mapJumpBrush">🖌 Jump to Brush (achar brush)…</button>
+            <hr>
+            <button id="mapProps">ⓘ Propriedades / Towns…</button>
+            <button id="mapBorderize">▦ Borderize seleção</button>
+            <button id="mapBorderizeAll">▦▦ Borderize mapa inteiro</button>
+            <button id="mapRandomize">🎲 Randomize seleção</button>
+            <button id="mapRandomizeAll">🎲🎲 Randomize mapa</button>
+            <button id="mapStats">📊 Estatísticas</button>
+            <button id="mapCleanup">🧽 Limpar (inválidos/dups/vazios)</button>
+          </div></details>
+          <details class="menu"><summary>Ferramentas</summary><div class="menuPop">
+            <button id="mapFind">🔎 Achar item…</button>
+            <button id="mapReplace">🔁 Substituir item…</button>
+            <button id="mapRemoveItem">➖ Remover item (seleção/mapa)…</button>
+            <button id="mapFillSelBtn">🪣 Preencher seleção com brush</button>
+            <button id="mapSimilar">🔍 Achar itens similares (visual)…</button>
+            <button id="mapTeleports">🌀 Teleports do mapa…</button>
+            <button id="mapHousesBtn">🏠 Gerenciar casas…</button>
+            <button id="mapToggleToolOpts">🧰 Tool Options (mostrar/ocultar)</button>
+            <button id="mapFreeSize">🗖 Tamanho livre do mapa (arrastar canto)</button>
+            <button id="mapExportPng">📤🖼 Exportar minimap PNG</button>
+            <button id="mapExportFullPng">🖼🗺 Exportar mapa completo PNG (andar)</button>
+            <button id="mapExportAllFloors">🗺📚 Exportar minimap de TODOS os andares</button>
+            <button id="mapBack">⤺ Voltar posição</button>
+          </div></details>
+          <span class="menuSpacer"></span>
+          <span id="mapFloor" class="menuInfo">z=7</span>
+          <span id="mapZoomLbl" class="menuInfo">100%</span>
+          <button id="mapSave" class="primary" title="salvar .otbm" style="display:none">💾 Salvar</button>
+        </div>
+        <div id="mapToolbar">
+          <button id="mapToolPan" class="mapTool active" title="navegar (espaço+arrasta)">🖐</button>
+          <button id="mapToolSelect" class="mapTool" title="selecionar — setas movem, Del apaga">⬚</button>
+          <select id="mapSelShape" title="forma da seleção"><option value="rect">▭ Retângulo</option><option value="circle">◯ Círculo/Elipse</option><option value="diamond">◇ Losango</option><option value="triangle">△ Triângulo</option><option value="rtriangle">◺ Tri.Retângulo</option><option value="line">╱ Linha</option><option value="star">★ Estrela</option><option value="hexagon">⬡ Hexágono</option><option value="polygon">⬠ Polígono livre</option></select>
+          <select id="mapSelFloor" title="andares afetados pelo Del/Replace"><option value="current">andar atual</option><option value="lower">atual + abaixo</option><option value="visible">visíveis (topo→atual)</option></select>
+          <button id="mapToolPaint" class="mapTool" title="pincel (brush da palette ou serverId)">🖌</button>
+          <button id="mapToolBucket" class="mapTool" title="balde (preenche área)">🪣</button>
+          <button id="mapToolErase" class="mapTool" title="borracha (apaga topo)">🧹</button>
+          <button id="mapToolZone" class="mapTool" title="zona (arrasta p/ marcar flag)">🛡</button>
+          <button id="mapToolSpawn" class="mapTool" title="spawn (clica add · ctrl remove)">🔴</button>
+          <button id="mapToolWaypoint" class="mapTool" title="waypoint (clica add · ctrl remove)">📍</button>
+          <button id="mapAutoB" class="mapTool active" title="Automagic / auto-borda (tecla A) — liga/desliga as bordas automáticas">A</button>
+          <span class="mapSep"></span>
+          <button id="mapFloorUp" title="subir andar">▲</button>
+          <button id="mapFloorDown" title="descer andar">▼</button>
+          <button id="mapZoomOut" title="zoom -">➖</button>
+          <button id="mapZoomIn" title="zoom +">➕</button>
+          <input id="mapGoto" placeholder="x,y" title="ir p/ posição" style="width:74px" />
+          <button id="mapPick" title="conta-gotas (pega item/brush do tile)">💧</button>
+          <span class="mapSep"></span>
+          <input id="mapBrush" type="number" placeholder="serverId" title="id do item p/ pintar" style="width:80px" />
+          <input id="mapBorder" type="number" placeholder="borda" title="auto-borda simples (opcional)" style="width:60px" />
+          <label class="tbChk" title="pintar substitui o chão"><input id="mapGroundMode" type="checkbox" /> ground</label>
+          <select id="mapZoneFlag" title="flag da zona"><option value="1">PZ</option><option value="4">No PVP</option><option value="8">No Logout</option><option value="16">PVP Zone</option><option value="0">limpar</option></select>
+          <input id="mapSpawnMob" placeholder="monstro" title="nome p/ spawn/creature" style="width:90px" />
+          <input id="mapSpawnRad" type="number" value="3" title="raio do spawn" style="width:42px" />
+          <span class="tbSep">│</span>
+          <label class="tbChk" title="tamanho do brush (0 = 1 tile)">tam <input id="mapBrushSize" type="range" min="0" max="7" value="0" style="width:70px" /><span id="mapBrushSizeLbl">0</span></label>
+          <button id="mapBrushShape" class="mapTool" title="forma do brush (quadrado/círculo)">▢</button>
+          <select id="mapDoorType" title="tipo de porta (door brush)" style="display:none"><option value="normal">Normal</option><option value="locked">Locked</option><option value="magic">Magic</option><option value="quest">Quest</option><option value="hatch">Hatch</option><option value="window">Window</option></select>
+          <span class="tbSep">│</span>
+          <button id="mapLight" class="mapTool" title="iluminação (liga/desliga) — usa a luz dos itens do .dat">💡</button>
+          <button id="mapWalk" class="mapTool" title="simular caminhada (clica p/ por o player · setas andam · respeita blocking)">🚶</button>
+          <label class="tbChk" title="intensidade/raio da luz">luz <input id="mapLightInt" type="range" min="1" max="12" value="6" style="width:56px" /></label>
+          <label class="tbChk" title="luz ambiente (0 = noite escura · 100 = dia)">amb <input id="mapLightAmb" type="range" min="0" max="100" value="22" style="width:56px" /></label>
+        </div>
+        <div id="mapStage">
+          <div id="mapPalette">
+            <div class="palHead">Palette</div>
+            <select id="palType">
+              <option value="terrain">Terrain Palette</option>
+              <option value="doodad">Doodad Palette</option>
+              <option value="raw">Item Palette</option>
+              <option value="wall">Wall Palette</option>
+              <option value="door">Door Palette</option>
+              <option value="carpet">Carpet Palette</option>
+              <option value="table">Table Palette</option>
+              <option value="creature">Creature Palette</option>
+              <option value="house">House Palette</option>
+              <option value="waypoint">Waypoint Palette</option>
+            </select>
+            <input id="palHouseId" type="number" placeholder="house id" title="ID da casa (House Palette)" style="display:none;width:100%;margin-top:4px" />
+            <select id="palTileset" title="Tileset"></select>
+            <input id="palSearch" placeholder="filtrar…" />
+            <div id="palList"></div>
+          </div>
+          <canvas id="mapCanvas"></canvas>
+          <div id="mapTooltip" style="display:none"></div>
+          <div id="mapToolOpts">
+            <div class="palHead toHead">Tool Options <button id="toClose" title="esconder">✕</button></div>
+            <div class="toSect toPrevSect">
+              <canvas id="toPreviewCv" width="64" height="64" class="toPrevCv"></canvas>
+              <div id="toPreviewLbl" class="toLbl" style="text-align:center">— nada —</div>
+              <button id="toRotate" class="toBtn2" title="girar/variar (tecla X)" style="width:100%;margin-top:4px">⟳ girar (X)</button>
+            </div>
+            <div class="toSect">
+              <div class="toGrid">
+                <button class="toBtn" data-tool="paint" title="Pincel">🖌<small>BRUSH</small></button>
+                <button class="toBtn" data-tool="erase" title="Borracha">🧹<small>ERASE</small></button>
+                <button class="toBtn" data-tool="optborder" title="Optional Border (gravel/cliff)">▦<small>BORDER</small></button>
+                <button class="toBtn" data-tool="bucket" title="Balde">🪣<small>FILL</small></button>
+              </div>
+            </div>
+            <div class="toSect"><div class="toLbl">Zonas (flag brush)</div>
+              <div class="toGrid">
+                <button class="toBtn" data-flag="1" title="Protection Zone">🛡<small>PZ</small></button>
+                <button class="toBtn" data-flag="4" title="No PVP">🕊<small>NO-PVP</small></button>
+                <button class="toBtn" data-flag="8" title="No Logout">🚪<small>LOGOUT</small></button>
+                <button class="toBtn" data-flag="16" title="PVP Zone">⚔<small>PVP</small></button>
+                <button class="toBtn" data-flag="0" title="Limpar flags">🧽<small>CLEAR</small></button>
+              </div>
+            </div>
+            <div class="toSect"><div class="toLbl">Porta (door brush)</div>
+              <div class="toGrid">
+                <button class="toBtn" data-door="normal" title="Porta normal">🚪<small>NORMAL</small></button>
+                <button class="toBtn" data-door="locked" title="Trancada">🔒<small>LOCKED</small></button>
+                <button class="toBtn" data-door="magic" title="Mágica">✨<small>MAGIC</small></button>
+                <button class="toBtn" data-door="quest" title="Quest">❗<small>QUEST</small></button>
+                <button class="toBtn" data-door="hatch" title="Alçapão">⬛<small>HATCH</small></button>
+                <button class="toBtn" data-door="window" title="Janela">🪟<small>WINDOW</small></button>
+              </div>
+            </div>
+            <div class="toSect">
+              <div class="toRow"><span>Size</span><input id="toSize" type="range" min="0" max="7" value="0" /><span id="toSizeLbl">0</span></div>
+              <div class="toRow"><span>Forma</span><button id="toShape" class="toBtn2">▢ quadrado</button></div>
+              <label class="toChk"><input id="toPreview" type="checkbox" /> Preview Border</label>
+              <label class="toChk"><input id="toLockDoors" type="checkbox" checked /> Lock Doors (Shift)</label>
+            </div>
+            <div class="toSect" id="tilePropsDock">
+              <div class="tpLbl">Tile Properties <span id="tpDockPos" style="color:#6b768e;font-weight:400"></span></div>
+              <div id="tpDockBody"><div class="alabel" style="font-size:11px;padding:4px">clique num tile p/ ver/editar</div></div>
+            </div>
+          </div>
+        </div>
+        <div id="mapStatus"><span id="mapInfo">abra um .otbm (Arquivo ▸ Abrir)</span> <button id="toShow" title="mostrar Tool Options" style="display:none">⚙ Tool Options</button></div>
+      </div>
+
+      <div id="spellPanel" style="display:none">
+        <div class="spellBar">
+          <b>🪄 Spell Editor</b>
+          <select id="spTemplate" title="templates prontos"><option value="">＋ template…</option></select>
+          <input id="spIaPrompt" placeholder="descreva a spell (ex: bola de fogo estilo Rasengan que explode em cruz)…" style="flex:1;min-width:160px" />
+          <button id="spIaGen" class="primary">🤖 Gerar com IA</button>
+          <button id="spCopy">📋 Copiar Lua</button>
+          <button id="spLib">📚 Biblioteca</button>
+          <button id="spBrowse" title="navegar e abrir spells existentes do servidor">📂 Abrir do servidor</button>
+          <button id="spImport">📂 Importar .lua</button>
+          <button id="spExport">💾 Exportar .lua</button>
+        </div>
+        <div id="spellStage">
+          <div id="spellForm"></div>
+          <div id="spellRight">
+            <div class="spBlock">
+              <div class="palHead">🎬 Preview <span id="spPreviewCtl"></span></div>
+              <div class="spPrevCard"><canvas id="spellPreview" width="384" height="384"></canvas></div>
+            </div>
+            <div id="spellLuaWrap"><div class="palHead">📜 Lua gerado <span id="spLuaName" style="color:var(--muted);font-weight:400;font-size:11px"></span></div><pre id="spellLua"></pre></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="scriptPanel" style="display:none">
+        <div class="spellBar">
+          <b>📜 Script Studio</b>
+          <select id="scType" title="tipo de script"></select>
+          <input id="scIaPrompt" placeholder="descreva o script (ex: baú que dá 10kk de exp uma vez; comando !heal que cura o player)…" style="flex:1;min-width:160px" />
+          <button id="scIaGen" class="primary">🤖 Gerar com IA</button>
+          <button id="scCopy">📋 Copiar</button>
+          <button id="scBrowse">📂 Abrir do servidor</button>
+          <button id="scExport">💾 Exportar .lua</button>
+        </div>
+        <div id="scriptStage">
+          <div id="scriptForm"></div>
+          <div id="scriptRight">
+            <div class="palHead">Registro (XML)</div>
+            <pre id="scriptXml" style="background:#15171d;color:#9fe0b0;font-family:Consolas,monospace;font-size:11px;padding:8px;border-radius:6px;white-space:pre-wrap"></pre>
+            <div class="palHead">Lua gerado</div>
+            <pre id="scriptLua"></pre>
+          </div>
+        </div>
+      </div>
+
+      <div id="aiPanel" style="display:none">
+        <div class="aiBar">
+          <select id="aiProvider" title="provedor de IA"></select>
+          <input id="aiModel" list="aiModels" placeholder="modelo" style="width:200px" />
+          <datalist id="aiModels"></datalist>
+          <input id="aiKey" type="password" placeholder="API key…" style="width:180px" />
+          <input id="aiCustomUrl" placeholder="http://localhost:1234/v1/chat/completions" style="width:230px;display:none" />
+          <button id="aiRefresh" title="detectar modelos locais instalados" style="display:none">🔄</button>
+          <button id="aiClaudeLogin" title="login / verificar Claude Code" style="display:none">🔑 Login Claude</button>
+          <button id="aiSaveKey" title="salvar key local">💾</button>
+          <label class="aiCtx"><input id="aiUseCtx" type="checkbox" checked /> usar arquivo/seleção atual</label>
+          <label class="aiCtx"><input id="aiAllTabs" type="checkbox" /> todas as abas abertas</label>
+        </div>
+        <div class="aiConvBar" style="display:flex;gap:6px;margin-bottom:6px">
+          <button id="aiNew" class="miniBtn" title="nova conversa (limpa o histórico)">🆕 Nova</button>
+          <button id="aiSaveConv" class="miniBtn" title="salvar conversa (.json)">💾 Salvar conversa</button>
+          <button id="aiLoadConv" class="miniBtn" title="carregar conversa (.json)">📂 Carregar</button>
+          <button id="aiSysPrompt" class="miniBtn" title="editar o system prompt">📝 Prompt</button>
+          <label class="miniBtn" style="display:flex;gap:4px;align-items:center" title="temperatura (criatividade)">🌡<input id="aiTemp" type="range" min="0" max="1" step="0.1" value="0.3" style="width:70px"><span id="aiTempLbl">0.3</span></label>
+        </div>
+        <div class="aiTemplates" id="aiTemplates"></div>
+        <div id="aiChat"></div>
+        <div class="aiInputRow">
+          <textarea id="aiPrompt" placeholder="Peça um script, monstro, spell… (Ctrl+Enter envia)"></textarea>
+          <button id="aiSend" class="primary">▶ Enviar</button>
+        </div>
+      </div>
+  </div>
+
+  <div id="statusbar"><span id="status">carregando…</span></div>
+
+  <!-- modal: nome ao criar -->
+  <div id="nameModal" class="modal" style="display:none">
+    <div class="modalBox">
+      <div class="modalHead"><b id="nameTitle">Criar</b></div>
+      <input id="nameInput" placeholder="nome…" />
+      <div class="modalActions">
+        <button id="nameCancel">Cancelar</button>
+        <button id="nameOk" class="primary">Criar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- modal: caminhos do servidor -->
+  <div id="pathsModal" class="modal" style="display:none">
+    <div class="modalBox pathsBox">
+      <div class="modalHead"><b>Caminhos do servidor</b><button id="pathsClose">✕</button></div>
+      <div class="pathRow"><label>Raiz (auto-preenche)</label><input id="pRoot" /><button data-pick="dir" data-tgt="pRoot">📂</button><button id="pAuto">Auto</button></div>
+      <hr class="psep" />
+      <div class="pathRow"><label>config.lua</label><input id="pCfg" /><button data-pick="file" data-tgt="pCfg">📄</button></div>
+      <div class="pathRow"><label>Pasta monster</label><input id="pMon" /><button data-pick="dir" data-tgt="pMon">📂</button></div>
+      <div class="pathRow"><label>Pasta npc</label><input id="pNpc" /><button data-pick="dir" data-tgt="pNpc">📂</button></div>
+      <div class="pathRow"><label>vocations.xml</label><input id="pVoc" /><button data-pick="file" data-tgt="pVoc">📄</button></div>
+      <div class="pathRow"><label>spells.xml</label><input id="pSpells" /><button data-pick="file" data-tgt="pSpells">📄</button></div>
+      <div class="pathRow"><label>Tibia.dat</label><input id="pDat" /><button data-pick="file" data-tgt="pDat">📄</button></div>
+      <div class="pathRow"><label>Tibia.spr</label><input id="pSpr" /><button data-pick="file" data-tgt="pSpr">📄</button></div>
+      <div class="pathRow"><label>items.otb</label><input id="pOtb" /><button data-pick="file" data-tgt="pOtb">📄</button></div>
+      <div class="modalActions"><button id="pathsCancel">Cancelar</button><button id="pathsOk" class="primary">Carregar</button></div>
+    </div>
+  </div>
+
+  <!-- modal: editor de arquivo cru (.lua/.xml) -->
+  <div id="editModal" class="modal" style="display:none">
+    <div class="modalBox editBox">
+      <div class="modalHead"><b id="editTitle">Editar arquivo</b><button id="editClose">✕</button></div>
+      <textarea id="editArea" spellcheck="false"></textarea>
+      <div class="modalActions"><span id="editPath" class="alabel"></span><button id="editCancel">Cancelar</button><button id="editSave" class="primary">💾 Salvar</button></div>
+    </div>
+  </div>
+
+  <!-- modal: diff (comparar pastas) -->
+  <div id="diffModal" class="modal" style="display:none">
+    <div class="modalBox diffBox">
+      <div class="modalHead">
+        <b id="diffTitle">Comparar</b>
+        <button id="diffSave" class="primary">💾 Salvar (direita)</button>
+        <button id="diffClose">✕</button>
+      </div>
+      <div id="diffView"></div>
+    </div>
+  </div>
+
+  <!-- modal: logs de erro -->
+  <div id="errModal" class="modal" style="display:none">
+    <div class="modalBox lookBox">
+      <div class="modalHead">
+        <b id="errTitle">Logs de erro</b>
+        <button id="errCopy">📋 Copiar</button>
+        <button id="errClear">🧹 Limpar</button>
+        <button id="errClose">✕</button>
+      </div>
+      <div id="errList"></div>
+    </div>
+  </div>
+
+  <!-- modal: validacao -->
+  <div id="valModal" class="modal" style="display:none">
+    <div class="modalBox lookBox">
+      <div class="modalHead">
+        <b id="valTitle">Validação</b>
+        <button id="valClose">✕</button>
+      </div>
+      <div id="valList"></div>
+    </div>
+  </div>
+
+  <!-- modal: seletor visual de looktype -->
+  <div id="lookPicker" class="modal" style="display:none">
+    <div class="modalBox lookBox">
+      <div class="modalHead">
+        <b>Escolher outfit (looktype)</b>
+        <input id="lookFilter" placeholder="filtrar por id…" />
+        <button id="lookClose">✕</button>
+      </div>
+      <div id="lookGrid"></div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

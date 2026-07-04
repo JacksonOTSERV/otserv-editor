@@ -1,0 +1,17 @@
+{
+  "name": "otserv-editor-tauri",
+  "version": "0.1.0",
+  "description": "OTServ Editor — versão Tauri (Rust + WebView)",
+  "scripts": {
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "dev-gnu": "tauri dev --target x86_64-pc-windows-gnu",
+    "build-gnu": "tauri build --target x86_64-pc-windows-gnu"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.11.2",
+    "javascript-obfuscator": "^5.4.3",
+    "sharp": "^0.35.1"
+  }
+}

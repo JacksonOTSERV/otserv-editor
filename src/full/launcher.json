@@ -1,0 +1,284 @@
+{
+  "site": "https://SEU-USUARIO.github.io/otserv-editor-site/",
+  "discord": "https://discord.gg/SEU-CONVITE",
+  "support": "seu-email@exemplo.com",
+  "hero": "Bem-vindo de volta. Veja o que mudou e o que está por vir antes de entrar no editor.",
+  "updates": [
+    {
+      "version": "0.1.4",
+      "date": "24 jun 2026",
+      "groups": [
+        {
+          "title": "Editor de Mapa (RME) - carregamento sob demanda",
+          "items": [
+            "Mapas grandes (.otbm) agora carregam SOB DEMANDA, por area (256x256): so e parseado o que aparece na tela. Abre instantaneo, sem travar.",
+            "Correcao: mapas com varios nos TILE_AREA na mesma base (OTBM valido) deixavam de carregar tiles (inclusive os dos towns). Agora carrega todos.",
+            "Indice de tiles incremental: nao reconstroi o mapa inteiro a cada area nova, entao arrastar/pan ficou liso.",
+            "Streaming com orcamento por frame e pre-carga ~1000x1000 ao redor da view (pan/zoom sem buracos pretos).",
+            "Goto de towns corrigido (parse das towns), e o minimapa acompanha a regiao visitada."
+          ]
+        },
+        {
+          "title": "Editor de Mapa (RME) - fluidez e correcoes",
+          "items": [
+            "Render desacoplado do carregamento de sprites: desenha na hora com o cache e aquece em segundo plano (arrasto sem engasgo).",
+            "Fim do bug de andar infinito ao tocar a seta em mapa grande: para se um frame travar e nao parseia durante o pan (segura = anda, solta = para).",
+            "Animacao otimizada: anima so o andar atual (os de baixo ficam estaticos) e desliga no zoom-out / durante o arrasto.",
+            "GPU (WebGL) ligado por padrao no Mapa.",
+            "Ground brush agora passa por cima de itens de chao colocados via RAW (sand/grass), igual ao RME.",
+            "Auto-completar 10x10 (tecla C): preview ao vivo da area e preenche os buracos com o terreno + decoracoes da vizinhanca."
+          ]
+        },
+        {
+          "title": "Spell Editor",
+          "items": [
+            "Carrega as spells do servidor: le o spells.xml (TFS/OTX) e resolve cada script .lua, ou varre a pasta revscript (.lua) do Canary.",
+            "Barra lateral lista todas as spells (busca por nome/palavras); clicar abre no editor.",
+            "Os campos (Registro/Combate/Custo-alvo/Formula/Condicao/Avancado) seguem a spell carregada: name, words, level, mana, group, selftarget/needtarget, cooldown, combat, effect, missile, formula e condicao.",
+            "Preview: o PLAYER e quem solta a spell. O efeito sai no player (self/area) e so vai no mob quando a spell e de alvo.",
+            "Preview: efeitos e misseis no tamanho REAL do .dat (nao mais espremidos em 1 SQM) e centralizados no player/mob.",
+            "Preview: spells multi-hit mostram o stream de varios misseis (conforme o .lua), e a posicao do player/monstro e mantida ao trocar de spell."
+          ]
+        },
+        {
+          "title": "Gerador de mapa e PNG para OTBM",
+          "items": [
+            "Double-buffering no preview: clicar nos checkboxes (Bordas auto, Multi-bioma, Heightmap, etc.) atualiza sem piscar a tela."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "0.1.3",
+      "date": "19 jun 2026",
+      "groups": [
+        {
+          "title": "Carregar servidor (tipos de servidor)",
+          "items": [
+            "Quatro presets na barra do modal: TFS/OTX, Canary, OpenTibia 7-10 e Outro. Cada preset mostra apenas os campos relevantes.",
+            "Separacao TFS x Canary: TFS/OTX usa items.otb; Canary usa items.xml, Assets 15.x, vocations.xml e spells (revscript).",
+            "Botao Limpar: esvazia apenas os campos visiveis do tipo de servidor selecionado.",
+            "Botao Auto: preenche apenas os campos do tipo selecionado (nao mais todos).",
+            "Botoes Cancelar e Fechar do modal passaram a fechar de fato.",
+            "Correcao do bug que escondia os botoes de tipo de servidor (so aparecia o TFS/OTX)."
+          ]
+        },
+        {
+          "title": "Suporte ao Canary (servidor)",
+          "items": [
+            "Monsters e NPCs em Lua (.lua) agora sao lidos e listados (antes ficavam zerados).",
+            "Carregamento das pastas monster e npc passou a cachear os .lua, corrigindo o erro de leitura.",
+            "Nome do NPC reconhecido tambem pelo padrao npcName.",
+            "vocations.xml e spells do Canary disponiveis no modal de carregamento."
+          ]
+        },
+        {
+          "title": "Spell Editor (lista de spells)",
+          "items": [
+            "Nova barra lateral fixa que carrega a pasta inteira de spells (recursiva) e lista todas.",
+            "Busca por nome, palavras ou caminho.",
+            "Clicar em uma spell abre ela no editor para visualizar e editar.",
+            "Botao Nova spell.",
+            "A pasta de spells fica salva e recarrega sozinha ao abrir a aba.",
+            "Correcao: abrir spell .lua nao falha mais por arquivo nao carregado."
+          ]
+        },
+        {
+          "title": "Assets Editor integrado",
+          "items": [
+            "Todas as funcionalidades do programa Assets Editor agora dentro do editor, no modo Assets, reaproveitando o motor do Object Builder.",
+            "Navegar e editar objetos, flags, sprite sheets, exportar PNG e OBD, editor de pixel, Compile As, editor de OTB, animacao, otimizador de sprites, slicer, criar, duplicar, remover e buscar.",
+            "Console de Script para edicao em lote de atributos e flags."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "0.1.2",
+      "date": "17 jun 2026",
+      "groups": [
+        {
+          "title": "Suporte ao Canary 15.x",
+          "items": [
+            "Campos no modal: Assets 15.x (sprites do cliente) + items.xml (atributos + proficiencies).",
+            "Botão items.xml no Object.",
+            "Materials do Canary (includes aninhados materials.xml → brushs/*.xml) — detecção automática."
+          ]
+        },
+        {
+          "title": "Modal \"Caminhos do servidor\"",
+          "items": [
+            "Botão Salvar (persiste sem carregar).",
+            "Bug do Salvar (\"voltava do mesmo jeito\" / pasta antiga em campo vazio) — corrigido (prioriza o salvo)."
+          ]
+        },
+        {
+          "title": "Performance do mapa (RAM + travamento)",
+          "items": [
+            "Strings \"x,y,z\" no render trocadas por índice numérico (eliminou a geração de lixo/GC).",
+            "Heap do editor de 512 (que sufocava) para 1024, equilibrado."
+          ]
+        },
+        {
+          "title": "Outras correções",
+          "items": [
+            "Salvar .spr (\"spr não aberto\" + virava .bak) — erro não é mais engolido e restaura o backup.",
+            "Andares ghost/preto: sombra desligada por padrão, tecla Q funciona, \"Show all Floors\" (Ctrl+W) implementado, e o \"below\" não fica mais preto ao andar."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "0.1.1",
+      "date": "14 jun 2026",
+      "groups": [
+        {
+          "title": "Object Builder (itens / sprites)",
+          "items": [
+            "Paridade com o Object Builder original, com 3 painéis (Objects / Inspector / Sprites).",
+            "Drag-and-drop de PNG.",
+            "Abas Sprite, Propriedades e Flags separadas.",
+            "Compile As (exportar em versão de cliente diferente).",
+            "Editor de pixel, frame groups, otimizadores (.fd / .fg / sprites), slicer e viewer.",
+            "Edição de flags em massa.",
+            "Assets 12+/15.x (catalog + sprites .bmp.lzma) além do .dat/.spr/.otb clássico, lendo appearances.dat (protobuf) sem precisar do items.otb."
+          ]
+        },
+        {
+          "title": "Editor de Mapa (RME)",
+          "items": [
+            "Layout e barra de menus equivalentes ao RME full.",
+            "Pintura, borracha, bordas automáticas (Automagic) e palettes.",
+            "Borracha mágica (Shift+Ctrl+arrastar) apaga o mesmo item na área.",
+            "Casas, spawns e towns.",
+            "Render GPU (WebGL) opcional para zoom out fluido (toggle).",
+            "Data Editor (Montar brush): monta 7 tipos e salva no materials — borda, piso, parede, montanha, doodad, carpete e mesa.",
+            "Scan da seleção: seleciona exemplos já pintados e o editor reconhece e cria os brushes automaticamente.",
+            "Identifica o tipo lendo os materiais (ground, borda+piso, montanha, parede, carpete, mesa, doodad).",
+            "Lê orientação, edge e align exatos dos materiais (paredes, carpetes, mesas).",
+            "Vários exemplos numa seleção só (separados por tiles vazios), criando uma palette inteira de uma vez.",
+            "Lista de revisão com preview visual de cada brush antes de salvar.",
+            "Novo mapa vazio, redimensionar, limpar house tiles inválidos e remover corpses."
+          ]
+        },
+        {
+          "title": "Spell Editor",
+          "items": [
+            "Formulário completo: vocações, cooldown nativo TFS, needlearn / premium / soul, blockarmor / dispel, entre outros.",
+            "Preview animado (player centralizado, monstro como offset arrastável).",
+            "Geração de Lua + XML prontos.",
+            "Base de conhecimento por IA: gera o skills.md do servidor (OTX / Canary / custom) via IA paga ou local, ou usa a padrão TFS.",
+            "Script Studio com a mesma base de IA."
+          ]
+        },
+        {
+          "title": "Monster / NPC / Vocações / Economia",
+          "items": [
+            "Editor de monstros com escalonamento de vida, além de dano e exp.",
+            "Editores de NPC, vocações e economia integrados."
+          ]
+        },
+        {
+          "title": "Configuração de Servidor",
+          "items": [
+            "Botão Servidor para apontar os caminhos: config.lua, monster, npc, vocations, spells, dat, spr, otb, mapa, spawn e materiais RME.",
+            "Auto-load: recarrega tudo no boot (mapa em carga preguiçosa). Os caminhos ficam salvos entre sessões."
+          ]
+        },
+        {
+          "title": "Live (colaboração em tempo real)",
+          "items": [
+            "Sala na nuvem via relay WebSocket próprio.",
+            "Sincroniza mapa (edição e cursores), spell e object, com presença e chat.",
+            "Enviar e pedir arquivo base em chunks, com barra de progresso.",
+            "Guia \"Como funciona\"."
+          ]
+        },
+        {
+          "title": "Tradução",
+          "items": [
+            "PT/EN em todos os módulos pela bandeira (traduz inclusive DOM dinâmico)."
+          ]
+        }
+      ]
+    },
+    {
+      "version": "0.1.0",
+      "date": "Lançamento",
+      "groups": [
+        {
+          "title": "Editor de Monstros",
+          "items": [
+            "XML de monstro · loot (item/chance/count) · spells/ataques/defesas.",
+            "Atributos (HP/exp/speed/immunities/elements) · seletor de sprite + outfit.",
+            "Calculadora de balanceamento · clonar/deletar · XML cru · validação."
+          ]
+        },
+        {
+          "title": "Editor de NPCs",
+          "items": [
+            "XML de NPC + Lua · loja (comprar/vender) · sugestão de preço."
+          ]
+        },
+        {
+          "title": "Editor de Vocações",
+          "items": [
+            "XML de vocação · atributos (HP/mana/cap, multipliers, skills)."
+          ]
+        },
+        {
+          "title": "Editor de Spawns",
+          "items": [
+            "spawn.xml · add/remover spawn e monstros · ajuste de raio."
+          ]
+        },
+        {
+          "title": "Navegador de Arquivos",
+          "items": [
+            "Árvore dupla · editor com syntax highlight (Lua/XML) · diff entre pastas · abas · salvar/reverter."
+          ]
+        },
+        {
+          "title": "Editor de Objetos",
+          "items": [
+            ".dat/.spr/items.otb/items.xml binário · geometria · animação + frame groups.",
+            "Editor de pixel · sprite sheet · slicer · colorização de outfit · OBD V1/V2/V3 · import PNG.",
+            "Browser Items/Outfits/Effects/Missiles · flags (100+) · conversão de versão."
+          ]
+        },
+        {
+          "title": "Economia",
+          "items": [
+            "Simulador de economia · auditoria."
+          ]
+        },
+        {
+          "title": "Assistente de IA",
+          "items": [
+            "9+ provedores · gera scripts TFS · contexto do arquivo atual · templates · explica/acha bug."
+          ]
+        },
+        {
+          "title": "Editor de Mapa (estilo RME)",
+          "items": [
+            "Brushes: Ground · Wall · Door (tipada) · Carpet · Table · House · Doodad · Raw · Optional border.",
+            "Paletas: 9 tipos + \"Todos os itens\"/\"Others\".",
+            "Tool Options: preview · Brush/Erase/Border/Fill · Zonas · portas · Size/Forma · Lock Doors.",
+            "Tile Properties: itens (mover/remover) · Map Flags · Action/Unique ID · House ID.",
+            "Ferramentas: Pan/Select/Paint/Bucket/Erase/Zone/Spawn/Waypoint/Walk.",
+            "Atalhos: A · X · Ctrl+arrasta · Shift+arrasta · scroll (zoom) · Ctrl+scroll (andar) · Copy/Paste/Flip/Rotate/Undo.",
+            "Visual: iluminação 2D · ghost de andares · grid · tooltips · modo in-game · minimap · preview no cursor.",
+            "Operações: Borderize · Randomize · Find/Replace/Remove · achar similares · Cleanup · estatísticas · merge .otbm · Export PNG.",
+            "Walk: player animado, colisão, nome + looktype."
+          ]
+        }
+      ]
+    }
+  ],
+  "roadmap": [
+    {
+      "title": "Loja de assets da comunidade",
+      "desc": "Baixar e compartilhar sprites, brushes e templates."
+    }
+  ]
+}

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>OTServ Editor (Tauri) — Mapa</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: "Segoe UI", sans-serif; background: #0f1118; color: #e9edf6; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    header { display: flex; align-items: center; gap: 10px; padding: 9px 16px; border-bottom: 1px solid #2a3145; background: #141826; }
+    header h1 { font-size: 16px; margin: 0; }
+    .badge { background: #1d4a2a; color: #5cf08a; padding: 2px 8px; border-radius: 8px; font-size: 12px; }
+    a, button { background: linear-gradient(#2c3346, #232a3a); color: #e9edf6; border: 1px solid #353d54; border-radius: 8px; padding: 6px 12px; cursor: pointer; font-size: 12px; text-decoration: none; }
+    a:hover, button:hover { border-color: #5b8cff; }
+    .nav.on { background: linear-gradient(#5b8cff, #3f6fe0); }
+    .sub { color: #93a0b8; font-size: 12px; }
+    #wrap { flex: 1; position: relative; min-height: 0; }
+    #cv { width: 100%; height: 100%; display: block; background: #0b0d12; cursor: grab; image-rendering: pixelated; }
+    #hud { position: absolute; top: 8px; left: 8px; background: #141826cc; border: 1px solid #2a3145; border-radius: 8px; padding: 6px 10px; font-size: 12px; }
+    #status { padding: 6px 16px; border-top: 1px solid #2a3145; font-size: 12px; color: #93a0b8; background: #141826; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>⚔️ OTServ Editor <span class="badge">Tauri</span></h1>
+    <a href="index.html" class="nav">🧩 Object</a>
+    <a href="map.html" class="nav on">🗺 Mapa</a>
+    <div style="margin-left:auto" class="sub">
+      <button id="btnDat">📂 .dat</button>
+      <button id="btnSpr">🎨 .spr</button>
+      <button id="btnOtb">🗃 items.otb</button>
+      <button id="btnMap">🗺 .otbm</button>
+    </div>
+  </header>
+  <div id="wrap">
+    <canvas id="cv"></canvas>
+    <div id="hud">arraste = pan · roda = zoom · PageUp/Down = andar</div>
+  </div>
+  <div id="status">abra .dat, .spr, items.otb e .otbm</div>
+
+  <script type="module">
+    import { TFS, TSPR, TDLG } from './bridge.js';
+    import { loadLibs, req } from './cjs.js';
+    import { warmSprites, composeSync, thingSpriteIds } from './sprites.js';
+    const $ = (id) => document.getElementById(id);
+    const status = (m) => $('status').innerHTML = m;
+
+    let Dat, OTBM, OTB, dat = null, otbMap = null, mapData = null, sprOpen = false;
+    let camX = 0, camY = 0, zoom = 1, mapZ = 7;
+    const cv = $('cv'), ctx = cv.getContext('2d');
+
+    (async () => { await loadLibs(['bytereader.js', 'versions.js', 'dat.js', 'otb.js', 'otbm.js']); Dat = req('./dat'); OTB = req('./otb'); OTBM = req('./otbm'); status('parsers ok. Abra .dat, .spr, items.otb, .otbm.'); })();
+
+    function resize() { cv.width = cv.clientWidth; cv.height = cv.clientHeight; render(); }
+    window.addEventListener('resize', resize);
+
+    $('btnDat').onclick = async () => { const p = await TDLG.openFile([{ name: 'dat', extensions: ['dat'] }]); if (!p) return; const b = await TFS.readFile(p); dat = new Dat(b, { extended: true, frameDurations: true, frameGroups: true, version: 860 }); status('.dat: ' + dat.itemCount + ' items'); render(); };
+    $('btnSpr').onclick = async () => { const p = await TDLG.openFile([{ name: 'spr', extensions: ['spr'] }]); if (!p) return; const n = await TSPR.open(p, { extended: true, transparency: true }); sprOpen = true; status('.spr: ' + n + ' sprites'); render(); };
+    $('btnOtb').onclick = async () => { const p = await TDLG.openFile([{ name: 'otb', extensions: ['otb'] }]); if (!p) return; const b = await TFS.readFile(p); otbMap = OTB.loadOtb(b); status('items.otb: ' + otbMap.size + ' (serverId→clientId)'); render(); };
+    $('btnMap').onclick = async () => {
+      const p = await TDLG.openFile([{ name: 'otbm', extensions: ['otbm'] }]); if (!p) return;
+      status('lendo .otbm…'); const b = await TFS.readFile(p); const t0 = performance.now();
+      mapData = OTBM.parse(b); const ms = (performance.now() - t0).toFixed(0);
+      // acha o andar com mais tiles + o centroide (pra centralizar na área com conteúdo)
+      const cnt = {}, sx = {}, sy = {};
+      for (const n of mapData.map.values()) { const z = n._z; cnt[z] = (cnt[z] || 0) + 1; sx[z] = (sx[z] || 0) + n._x; sy[z] = (sy[z] || 0) + n._y; }
+      let bz = 7, bc = -1; for (const z in cnt) if (cnt[z] > bc) { bc = cnt[z]; bz = +z; }
+      mapZ = bz; const ts = 32 * zoom;
+      camX = Math.round(sx[bz] / cnt[bz]) - (cv.width / ts) / 2; camY = Math.round(sy[bz] / cnt[bz]) - (cv.height / ts) / 2;
+      status(`.otbm: ${mapData.map.size} tiles (${ms}ms) · andar ${bz} (${bc} tiles)` + (!dat ? ' — abra .dat/.spr/items.otb p/ ver os sprites' : '')); render();
+    };
+
+    const cid = (sid) => (otbMap && otbMap.get(sid)) || sid;
+    let _rendering = false, _again = false;
+    async function render() {
+      if (!dat || !mapData) { ctx.fillStyle = '#0b0d12'; ctx.fillRect(0, 0, cv.width, cv.height); return; }
+      if (_rendering) { _again = true; return; } _rendering = true;
+      const ts = 32 * zoom, x0 = Math.floor(camX), y0 = Math.floor(camY);
+      const cols = Math.ceil(cv.width / ts) + 1, rows = Math.ceil(cv.height / ts) + 1;
+      // pass 1: junta os clientIds visíveis e aquece os sprites
+      const tiles = [], need = [];
+      for (let ty = 0; ty < rows; ty++) for (let tx = 0; tx < cols; tx++) {
+        const mx = x0 + tx, my = y0 + ty; const node = mapData.map.get(mx + ',' + my + ',' + mapZ); if (!node) continue;
+        const stack = []; const g = OTBM.getGround(node); if (g) stack.push(g);
+        for (const it of OTBM.itemNodes(node)) stack.push(OTBM.itemId(it));
+        tiles.push({ mx, my, stack });
+        for (const sid of stack) { const t = dat.item(cid(sid)); if (t) for (const id of thingSpriteIds(t, 0, 0)) need.push(id); }
+      }
+      if (sprOpen) await warmSprites(need);
+      // pass 2: desenha
+      ctx.fillStyle = '#0b0d12'; ctx.fillRect(0, 0, cv.width, cv.height);
+      for (const { mx, my, stack } of tiles) {
+        const sx = (mx - camX) * ts, sy = (my - camY) * ts;
+        for (const sid of stack) {
+          const t = dat.item(cid(sid)); if (!t) continue;
+          const c = sprOpen ? composeSync(t, 0, 0) : null;
+          if (c) ctx.drawImage(c, sx - (t.width - 1) * ts, sy - (t.height - 1) * ts, t.width * ts, t.height * ts);
+          else { ctx.fillStyle = '#223'; ctx.fillRect(sx, sy, ts, ts); }
+        }
+      }
+      $('hud').textContent = `z=${mapZ} · zoom ${Math.round(zoom * 100)}% · ${x0},${y0}`;
+      _rendering = false; if (_again) { _again = false; render(); }
+    }
+
+    // pan
+    let drag = null;
+    cv.addEventListener('mousedown', (e) => { drag = { x: e.clientX, y: e.clientY, cx: camX, cy: camY }; cv.style.cursor = 'grabbing'; });
+    window.addEventListener('mousemove', (e) => { if (!drag) return; const ts = 32 * zoom; camX = drag.cx - (e.clientX - drag.x) / ts; camY = drag.cy - (e.clientY - drag.y) / ts; render(); });
+    window.addEventListener('mouseup', () => { drag = null; cv.style.cursor = 'grab'; });
+    cv.addEventListener('wheel', (e) => { e.preventDefault(); const f = e.deltaY < 0 ? 1.25 : 0.8; zoom = Math.max(0.1, Math.min(6, zoom * f)); render(); }, { passive: false });
+    window.addEventListener('keydown', (e) => { if (e.key === 'PageUp') { mapZ = Math.max(0, mapZ - 1); render(); } else if (e.key === 'PageDown') { mapZ = Math.min(15, mapZ + 1); render(); } });
+    setTimeout(resize, 50);
+  </script>
+</body>
+</html>

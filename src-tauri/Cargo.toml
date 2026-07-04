@@ -1,0 +1,51 @@
+[package]
+name = "otserv-editor"
+version = "0.1.2"
+edition = "2021"
+default-run = "otserv-editor"
+description = "OTServ Editor (Tauri) — editor de TFS/OTCv8"
+
+[lib]
+name = "otserv_editor_lib"
+crate-type = ["rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["devtools"] }
+tauri-plugin-dialog = "2"
+tauri-plugin-updater = "2"   # auto-update (R2 + assinatura)
+tauri-plugin-process = "2"   # relaunch após instalar update
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+lzma-rs = "0.3"   # decode dos sprite sheets .bmp.lzma (assets 12+/15.x)
+# ---- licença (key Ed25519 + HWID + validade) ----
+ed25519-dalek = { version = "2", features = ["rand_core"] }
+sha2 = "0.10"
+hex = "0.4"
+base64 = "0.22"
+winreg = "0.52"
+rand = "0.8"
+obfstr = "0.4"   # ofusca strings em compilação (pubkey/erros não aparecem no Ghidra/strings.exe)
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+# ---- proteção anti-tamper (anti-debug / anti-injeção / anti-RE) ----
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.59", features = [
+  "Win32_Foundation",
+  "Win32_System_Diagnostics_Debug",
+  "Win32_System_Diagnostics_ToolHelp",
+  "Win32_System_Threading",
+  "Win32_UI_WindowsAndMessaging",
+  "Win32_System_Memory",
+] }
+
+[[bin]]
+name = "keygen"
+path = "src/bin/keygen.rs"
+
+[profile.release]
+opt-level = 3        # velocidade (decode de sprite é hot path)
+lto = "fat"
+codegen-units = 1
+strip = true

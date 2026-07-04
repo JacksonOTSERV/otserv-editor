@@ -1,0 +1,49 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0" stop-color="#202c3a"/>
+      <stop offset="0.55" stop-color="#101722"/>
+      <stop offset="1" stop-color="#080b10"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#fbeeb0"/>
+      <stop offset="0.45" stop-color="#e7bd5b"/>
+      <stop offset="1" stop-color="#b07e26"/>
+    </linearGradient>
+    <linearGradient id="goldDim" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#7a6a3e"/>
+      <stop offset="1" stop-color="#4a3c1d"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.4" r="0.62">
+      <stop offset="0" stop-color="#e7bd5b" stop-opacity="0.30"/>
+      <stop offset="0.6" stop-color="#e7bd5b" stop-opacity="0.05"/>
+      <stop offset="1" stop-color="#e7bd5b" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.10"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- base squircle -->
+  <rect x="72" y="72" width="880" height="880" rx="216" fill="url(#bg)"/>
+  <!-- top sheen -->
+  <rect x="72" y="72" width="880" height="880" rx="216" fill="url(#sheen)"/>
+  <!-- central glow -->
+  <rect x="72" y="72" width="880" height="880" rx="216" fill="url(#glow)"/>
+  <!-- inner hairline border -->
+  <rect x="84" y="84" width="856" height="856" rx="204" fill="none" stroke="#e7bd5b" stroke-opacity="0.30" stroke-width="3"/>
+
+  <!-- emblem: 4 squares + center node -->
+  <g>
+    <rect x="296" y="296" width="184" height="184" rx="40" fill="url(#gold)"/>
+    <rect x="544" y="296" width="184" height="184" rx="40" fill="url(#goldDim)"/>
+    <rect x="296" y="544" width="184" height="184" rx="40" fill="url(#goldDim)"/>
+    <rect x="544" y="544" width="184" height="184" rx="40" fill="url(#gold)"/>
+    <line x1="512" y1="300" x2="512" y2="724" stroke="#e7bd5b" stroke-opacity="0.22" stroke-width="6"/>
+    <line x1="300" y1="512" x2="724" y2="512" stroke="#e7bd5b" stroke-opacity="0.22" stroke-width="6"/>
+    <circle cx="512" cy="512" r="52" fill="#0e1420"/>
+    <circle cx="512" cy="512" r="52" fill="none" stroke="url(#gold)" stroke-width="10"/>
+    <circle cx="512" cy="512" r="18" fill="#fbeeb0"/>
+  </g>
+</svg>

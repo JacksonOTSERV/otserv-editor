@@ -1,0 +1,32 @@
+# ===== Segredos / chaves (NUNCA commitar) =====
+SEGREDOS-LOCAIS.txt
+src-tauri/keygen-private.key
+src-tauri/updater.key
+*.pem
+
+# ===== Build artifacts =====
+node_modules/
+src-tauri/target/
+dist/
+dist-zip/
+dist-zip.zip
+
+# ===== Instaladores / releases =====
+publish/
+*.exe
+*.msi
+
+# ===== Site (repo separado) =====
+landing/
+
+# ===== Banco do license-server =====
+license-server/licenses.json
+license-server/*.db
+
+# ===== Diversos =====
+# arquivo reservado do Windows (device 'nul') que aparece por engano
+nul
+**/nul
+*.log
+.DS_Store
+Thumbs.db
