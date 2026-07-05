@@ -1,0 +1,11 @@
+# Normaliza fim de linha (evita avisos LF/CRLF no Windows)
+* text=auto eol=lf
+
+# Binários — nunca normalizar
+*.png binary
+*.ico binary
+*.svg text
+*.exe binary
+*.spr binary
+*.dat binary
+*.otb binary
